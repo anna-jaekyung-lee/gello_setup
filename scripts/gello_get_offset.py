@@ -2,7 +2,7 @@ import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 import tyro
@@ -28,6 +28,10 @@ class Args:
     gripper: bool = True
     """Whether or not the gripper is attached."""
 
+    joint_ids: Optional[Tuple[int, ...]] = None
+    """Servo IDs from base to wrist, then gripper last. Defaults to 1..N.
+    Use this if your servos are numbered in reverse, e.g. 7 6 5 4 3 2 1."""
+
     def __post_init__(self):
         assert len(self.joint_signs) == len(self.start_joints)
         for idx, j in enumerate(self.joint_signs):
@@ -46,7 +50,14 @@ class Args:
 
 
 def get_config(args: Args) -> None:
-    joint_ids = list(range(1, args.num_joints + 1))
+    if args.joint_ids is not None:
+        assert len(args.joint_ids) == args.num_joints, (
+            f"joint_ids has {len(args.joint_ids)} entries, "
+            f"expected {args.num_joints}"
+        )
+        joint_ids = list(args.joint_ids)
+    else:
+        joint_ids = list(range(1, args.num_joints + 1))
     driver = DynamixelDriver(joint_ids, port=args.port, baudrate=57600)
 
     # assume that the joint state shouold be args.start_joints

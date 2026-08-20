@@ -105,6 +105,28 @@ PORT_CONFIG_MAP: Dict[str, DynamixelRobotConfig] = {
         joint_signs=(1, 1, -1, 1, 1, 1),
         gripper_config=(7, 286, 248),
     ),
+    # UR5 GELLO (macOS, U2D2 FTBIN528)
+    # Servos are numbered in REVERSE along the chain: ID 7 = base ... ID 2 = wrist3,
+    # ID 1 = gripper. Hence joint_ids counts down and gripper_config uses ID 1.
+    # Calibrated at start_joints = (0, -1.57, 1.57, -1.57, -1.57, 0)
+    "/dev/tty.usbserial-FTBIN528": DynamixelRobotConfig(
+        joint_ids=(7, 6, 5, 4, 3, 2),
+        joint_offsets=(
+            4 * np.pi / 2,
+            2 * np.pi / 2,
+            # elbow: was 3*pi/2, which read +89 deg with GELLO straight and
+            # pushed the top of its travel past the UR5e's +-pi elbow limit.
+            2 * np.pi / 2,
+            2 * np.pi / 2,
+            2 * np.pi / 2,
+            2 * np.pi / 2,
+        ),
+        joint_signs=(1, 1, -1, 1, 1, 1),
+        # Measured trigger sweep is 89.1-100.9 deg (11.8 deg total). Mapped
+        # across only 101->94 deg so a light squeeze already reaches fully
+        # closed; the rest of the physical travel stays clamped at 1.0.
+        gripper_config=(1, 101, 94),
+    ),
 }
 
 
